@@ -1,7 +1,11 @@
 package com.example.MorphoAid.controllers;
 
+import com.example.MorphoAid.models.ERole;
+import com.example.MorphoAid.models.Role;
 import com.example.MorphoAid.models.User;
+import com.example.MorphoAid.payload.request.UpdateUserRoleRequest;
 import com.example.MorphoAid.payload.response.UserWithRolesResponse;
+import com.example.MorphoAid.repository.RoleRepository;
 import com.example.MorphoAid.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,13 +16,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private RoleRepository roleRepository;
+
 
     // ✅ GET /api/admin/users (ต้องเป็น ADMIN เท่านั้น)
     @GetMapping("/users")
@@ -39,4 +45,35 @@ public class AdminController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/users/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateUserRole(@PathVariable Long id, @RequestBody UpdateUserRoleRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+
+        // ล้าง role เดิมออก
+        user.getRoles().clear();
+
+        // หาบทบาทใหม่จาก enum
+        Role newRole = roleRepository.findByName(ERole.valueOf("ROLE_" + request.getRole().toUpperCase()))
+                .orElseThrow(() -> new RuntimeException("Role not found: " + request.getRole()));
+
+        user.getRoles().add(newRole);
+        userRepository.save(user);
+
+        return ResponseEntity.ok("User role updated successfully.");
+    }
+
+    @DeleteMapping("/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        if (!userRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        userRepository.deleteById(id);
+        return ResponseEntity.ok("User deleted successfully.");
+    }
+
 }
