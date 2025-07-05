@@ -1,4 +1,4 @@
-package com.example.MorphoAid.payload.request;
+package com.example.MorphoAid.DTO.request;
 
 public class UpdateUserRoleRequest {
     private String role;

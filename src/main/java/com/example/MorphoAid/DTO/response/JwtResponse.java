@@ -1,4 +1,4 @@
-package com.example.MorphoAid.payload.response;
+package com.example.MorphoAid.DTO.response;
 
 import java.util.List;
 
@@ -10,14 +10,17 @@ public class JwtResponse {
     private String firstName;
     private String lastName;
     private List<String> roles;
+    private String redirectUrl;
 
-    public JwtResponse(String accessToken, Long id, String email, String firstName, String lastName, List<String> roles) {
+
+    public JwtResponse(String accessToken, Long id, String email, String firstName, String lastName, List<String> roles, String redirectUrl) {
         this.token = accessToken;
         this.id = id;
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
         this.roles = roles;
+        this.redirectUrl = redirectUrl;
     }
 
     public String getAccessToken() {
@@ -54,5 +57,13 @@ public class JwtResponse {
 
     public List<String> getRoles() {
         return roles;
+    }
+
+    public String getRedirectUrl() {
+        return redirectUrl;
+    }
+
+    public void setRedirectUrl(String redirectUrl) {
+        this.redirectUrl = redirectUrl;
     }
 }

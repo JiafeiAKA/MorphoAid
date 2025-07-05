@@ -3,8 +3,8 @@ package com.example.MorphoAid.controllers;
 import com.example.MorphoAid.models.ERole;
 import com.example.MorphoAid.models.Role;
 import com.example.MorphoAid.models.User;
-import com.example.MorphoAid.payload.request.UpdateUserRoleRequest;
-import com.example.MorphoAid.payload.response.UserWithRolesResponse;
+import com.example.MorphoAid.DTO.request.UpdateUserRoleRequest;
+import com.example.MorphoAid.DTO.response.UserWithRolesResponse;
 import com.example.MorphoAid.repository.RoleRepository;
 import com.example.MorphoAid.repository.UserRepository;
 

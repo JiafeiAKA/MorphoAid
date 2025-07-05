@@ -1,6 +1,5 @@
-package com.example.MorphoAid.payload.request;
+package com.example.MorphoAid.DTO.request;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public class LoginRequest {
