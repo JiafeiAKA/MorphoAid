@@ -1,7 +1,6 @@
-package com.example.MorphoAid.payload.request;
+package com.example.MorphoAid.DTO.request;
 
 import jakarta.validation.constraints.*;
-import java.util.Set;
 
 public class SignupRequest {
 
@@ -39,6 +38,9 @@ public class SignupRequest {
     private boolean fromMORU;
 
     private String invitationToken;
+
+    private String confirmPassword;
+    private Boolean agree;
 
     // === Getters and Setters ===
 
@@ -97,5 +99,21 @@ public class SignupRequest {
 
     public void setInvitationToken(String invitationToken) {
         this.invitationToken = invitationToken;
+    }
+
+    public String getConfirmPassword() {
+        return confirmPassword;
+    }
+
+    public void setConfirmPassword(String confirmPassword) {
+        this.confirmPassword = confirmPassword;
+    }
+
+    public Boolean getAgree() {
+        return agree;
+    }
+
+    public void setAgree(Boolean agree) {
+        this.agree = agree;
     }
 }

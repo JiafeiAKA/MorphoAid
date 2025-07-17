@@ -1,4 +1,4 @@
-package com.example.MorphoAid.payload.response;
+package com.example.MorphoAid.DTO.response;
 
 public class MessageResponse {
     private String message;
