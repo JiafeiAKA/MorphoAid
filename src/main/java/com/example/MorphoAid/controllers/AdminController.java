@@ -52,18 +52,23 @@ public class AdminController {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
 
-        // ล้าง role เดิมออก
         user.getRoles().clear();
 
-        // หาบทบาทใหม่จาก enum
-        Role newRole = roleRepository.findByName(ERole.valueOf("ROLE_" + request.getRole().toUpperCase()))
-                .orElseThrow(() -> new RuntimeException("Role not found: " + request.getRole()));
+        Role newRole;
+        try {
+            ERole targetRole = ERole.valueOf("ROLE_" + request.getRole().toUpperCase());
+            newRole = roleRepository.findByName(targetRole)
+                    .orElseThrow(() -> new RuntimeException("Role not found: " + request.getRole()));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid role: " + request.getRole());
+        }
 
         user.getRoles().add(newRole);
         userRepository.save(user);
 
         return ResponseEntity.ok("User role updated successfully.");
     }
+
 
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
