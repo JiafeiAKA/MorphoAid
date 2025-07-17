@@ -93,7 +93,7 @@ public class AuthController {
             if (signUpRequest.getInvitationToken() == null || !signUpRequest.getInvitationToken().equals("MORU-INVITE-123")) {
                 return ResponseEntity
                         .badRequest()
-                        .body(new MessageResponse("Error: Invalid invitation token for MORU."));
+                        .body(new MessageResponse("Error: Invalid invitation token for MORU"));
             }
         }
 
