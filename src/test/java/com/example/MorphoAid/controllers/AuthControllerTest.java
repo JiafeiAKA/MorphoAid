@@ -68,7 +68,7 @@ public class AuthControllerTest {
         return login;
     }
 
-    // === UTC-01 ===
+    // === UTC-01: Login ===
 
     @Test
     void testAuthenticate_CorrectCredentials() {
@@ -89,29 +89,36 @@ public class AuthControllerTest {
 
         when(auth.getPrincipal()).thenReturn(details);
         when(jwtUtils.generateJwtToken(any())).thenReturn("token");
-
+        //HttpStatusCode.OK 200
         ResponseEntity<?> res = authController.authenticateUser(req);
         assertEquals(200, res.getStatusCodeValue());
         assertTrue(res.getBody() instanceof JwtResponse);
     }
-
+        //HttpStatusCode.UNAUTHORIZED 401
     @Test
     void testAuthenticate_InvalidUser() {
         when(authenticationManager.authenticate(any())).thenThrow(new RuntimeException("Bad credentials"));
         ResponseEntity<?> res = authController.authenticateUser(login("nouser@example.com", "test123"));
         assertEquals(401, res.getStatusCodeValue());
     }
-
+        //HttpStatusCode.UNAUTHORIZED 401
     @Test
     void testAuthenticate_WrongPassword() {
         when(authenticationManager.authenticate(any())).thenThrow(new RuntimeException("Bad credentials"));
         ResponseEntity<?> res = authController.authenticateUser(login("admin@example.com", "WrongPass"));
         assertEquals(401, res.getStatusCodeValue());
     }
-
+    //HttpStatusCode.BAD_REQUEST 400
     @Test
     void testAuthenticate_EmptyPassword() {
         LoginRequest req = login("admin@example.com", "");
+        ResponseEntity<?> res = authController.authenticateUser(req);
+        assertEquals(400, res.getStatusCodeValue());
+    }
+    //HttpStatusCode.BAD_REQUEST
+    @Test
+    void testAuthenticate_InvalidEmailFormat() {
+        LoginRequest req = login("invalid-email", "Admin123");
         ResponseEntity<?> res = authController.authenticateUser(req);
         assertEquals(400, res.getStatusCodeValue());
     }
@@ -139,7 +146,39 @@ public class AuthControllerTest {
         assertTrue(body.getRoles().contains("ROLE_ADMIN"));
     }
 
-    // === UTC-02 ===
+    @Test
+    void testAuthenticate_RoleRedirect_User() {
+        Authentication auth = mock(Authentication.class);
+        UserDetailsImpl details = new UserDetailsImpl(
+                2L, "user", "user@example.com", "First", "Last", "encoded",
+                List.of(new SimpleGrantedAuthority("ROLE_USER"))
+        );
+        when(authenticationManager.authenticate(any())).thenReturn(auth);
+        when(auth.getPrincipal()).thenReturn(details);
+        when(jwtUtils.generateJwtToken(any())).thenReturn("token");
+
+        ResponseEntity<?> res = authController.authenticateUser(login("user@example.com", "User123"));
+        JwtResponse body = (JwtResponse) res.getBody();
+        assertTrue(body.getRoles().contains("ROLE_USER"));
+    }
+
+    @Test
+    void testAuthenticate_RoleRedirect_Moderator() {
+        Authentication auth = mock(Authentication.class);
+        UserDetailsImpl details = new UserDetailsImpl(
+                3L, "mod", "moru@example.com", "First", "Last", "encoded",
+                List.of(new SimpleGrantedAuthority("ROLE_MODERATOR"))
+        );
+        when(authenticationManager.authenticate(any())).thenReturn(auth);
+        when(auth.getPrincipal()).thenReturn(details);
+        when(jwtUtils.generateJwtToken(any())).thenReturn("token");
+
+        ResponseEntity<?> res = authController.authenticateUser(login("moru@example.com", "Moru123"));
+        JwtResponse body = (JwtResponse) res.getBody();
+        assertTrue(body.getRoles().contains("ROLE_MODERATOR"));
+    }
+
+    // === UTC-02: Register ===
 
     @Test
     void testRegisterUser_OK() {
@@ -199,6 +238,57 @@ public class AuthControllerTest {
         s.setPassword("");
         s.setConfirmPassword("");
 
+        ResponseEntity<?> res = authController.registerUser(s);
+        assertEquals(400, res.getStatusCodeValue());
+    }
+
+    @Test
+    void testRegister_ShortUsername() {
+        SignupRequest s = validSignup("user");
+        s.setUsername("do");
+        ResponseEntity<?> res = authController.registerUser(s);
+        assertEquals(400, res.getStatusCodeValue());
+    }
+
+    @Test
+    void testRegister_LongUsername() {
+        SignupRequest s = validSignup("user");
+        s.setUsername("thisusernameistoolong");
+        ResponseEntity<?> res = authController.registerUser(s);
+        assertEquals(400, res.getStatusCodeValue());
+    }
+
+    @Test
+    void testRegister_ShortPassword() {
+        SignupRequest s = validSignup("user");
+        s.setPassword("123");
+        s.setConfirmPassword("123");
+        ResponseEntity<?> res = authController.registerUser(s);
+        assertEquals(400, res.getStatusCodeValue());
+    }
+
+    @Test
+    void testRegister_LongPassword() {
+        SignupRequest s = validSignup("user");
+        s.setPassword("averyveryverylongpassword");
+        s.setConfirmPassword("averyveryverylongpassword");
+        ResponseEntity<?> res = authController.registerUser(s);
+        assertEquals(400, res.getStatusCodeValue());
+    }
+
+    @Test
+    void testRegister_InvalidEmailFormat() {
+        SignupRequest s = validSignup("user");
+        s.setEmail("invalid-email");
+        ResponseEntity<?> res = authController.registerUser(s);
+        assertEquals(400, res.getStatusCodeValue());
+    }
+
+    @Test
+    void testRegister_PasswordMismatch() {
+        SignupRequest s = validSignup("user");
+        s.setPassword("Pass123");
+        s.setConfirmPassword("Pass456");
         ResponseEntity<?> res = authController.registerUser(s);
         assertEquals(400, res.getStatusCodeValue());
     }
