@@ -54,20 +54,30 @@ public class AdminController {
 
         user.getRoles().clear();
 
-        Role newRole;
         try {
-            ERole targetRole = ERole.valueOf("ROLE_" + request.getRole().toUpperCase());
-            newRole = roleRepository.findByName(targetRole)
-                    .orElseThrow(() -> new RuntimeException("Role not found: " + request.getRole()));
+            // 🔹 ป้องกัน null และ trim ข้อมูล
+            String roleString = request.getRole();
+            if (roleString == null || roleString.trim().isEmpty()) {
+                throw new RuntimeException("Role string is empty");
+            }
+
+            // 🔹 ปรับให้รองรับทั้งแบบ "admin", "ADMIN", "Role_admin", ฯลฯ
+            String roleFormatted = "ROLE_" + roleString.trim().toUpperCase();
+            ERole targetRole = ERole.valueOf(request.getRole().toUpperCase());
+            Role newRole = roleRepository.findByName(targetRole)
+                    .orElseThrow(() -> new RuntimeException("Role not found in DB: " + targetRole.name()));
+
+            user.getRoles().add(newRole);
+            userRepository.save(user);
+
+            return ResponseEntity.ok("User role updated to " + targetRole.name());
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid role: " + request.getRole());
+            return ResponseEntity.badRequest().body("Invalid role: " + request.getRole());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        user.getRoles().add(newRole);
-        userRepository.save(user);
-
-        return ResponseEntity.ok("User role updated successfully.");
     }
+
 
 
     @DeleteMapping("/users/{id}")

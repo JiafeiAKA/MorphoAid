@@ -97,7 +97,7 @@ public class AuthController {
             ));
 
         } catch (Exception e) {
-            return ResponseEntity.status(401).body(new MessageResponse("Invalid credentials"));
+            return ResponseEntity.status(401).body(new MessageResponse("Invalid email or password"));
         }
     }
 
@@ -121,9 +121,9 @@ public class AuthController {
             return ResponseEntity.badRequest().body(new MessageResponse("Passwords do not match"));
         }
 
-        if (signUpRequest.getAgree() == null || !signUpRequest.getAgree()) {
-            return ResponseEntity.badRequest().body(new MessageResponse("You must agree to terms and privacy policy"));
-        }
+//        if (signUpRequest.getAgree() == null || !signUpRequest.getAgree()) {
+//            return ResponseEntity.badRequest().body(new MessageResponse("You must agree to terms and privacy policy"));
+//        }
 
         // Username length: min 4, max 10
         if (signUpRequest.getUsername().length() < 4) {
@@ -131,7 +131,7 @@ public class AuthController {
         }
 
         if (signUpRequest.getUsername().length() > 10) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Username limit at 10 characters"));
+            return ResponseEntity.badRequest().body(new MessageResponse("Username limit at 15 characters"));
         }
 
         // Password length: min 6, max 20
