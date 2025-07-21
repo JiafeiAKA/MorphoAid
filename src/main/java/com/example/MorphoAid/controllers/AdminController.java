@@ -12,8 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -26,13 +30,16 @@ public class AdminController {
     private RoleRepository roleRepository;
 
 
-    // ✅ GET /api/admin/users (ต้องเป็น ADMIN เท่านั้น)
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getAllUsersWithRoles() {
-        List<User> users = userRepository.findAll();
+    public ResponseEntity<?> getUsersWithPagination(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Pageable paging = PageRequest.of(page, size);
+        Page<User> pagedUsers = userRepository.findAll(paging);
 
-        List<UserWithRolesResponse> response = users.stream().map(user ->
+        List<UserWithRolesResponse> users = pagedUsers.getContent().stream().map(user ->
                 new UserWithRolesResponse(
                         user.getId(),
                         user.getUsername(),
@@ -41,9 +48,14 @@ public class AdminController {
                         user.getLastName(),
                         user.getRoles().stream().map(role -> role.getName().name()).collect(Collectors.toList())
                 )
-        ).collect(Collectors.toList());
+        ).toList();
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Map.of(
+                "users", users,
+                "currentPage", pagedUsers.getNumber(),
+                "totalPages", pagedUsers.getTotalPages(),
+                "totalUsers", pagedUsers.getTotalElements()
+        ));
     }
 
     @PutMapping("/users/{id}/role")
